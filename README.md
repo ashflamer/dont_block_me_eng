@@ -88,6 +88,9 @@ No build command, output directory `.` (the root).
 npx vercel --prod --token <your-vercel-token>
 ```
 
+`buildCommand` runs `npm run build`, which is just `node --test test/` — so **every deploy is
+gated on the 32 tests passing**. Nothing else builds; the site is static files.
+
 `cleanUrls` is deliberately **off**: the link builder resolves `index.html` relative to its
 own URL, and extension-less hosting adds a redirect hop that makes relative asset paths
 fragile. `vercel.json` also sets cache headers for `/js/*`.

@@ -2,10 +2,11 @@
   "name": "dont-block-me-eng",
   "version": "1.0.0",
   "private": true,
-  "description": "Don't Block Me — Engineer Edition. A zero-dependency single-page quiz: microcontroller, language, 2 AM. Wrong answers get blocked.",
+  "description": "Don't Block Me \u2014 Engineer Edition. A zero-dependency single-page quiz of 10 questions (microcontroller, language, 2 AM...). Miss them and you get blocked.",
   "license": "MIT",
   "scripts": {
     "test": "node --test test/",
+    "build": "node --test test/",
     "start": "npx --yes serve . -l 3000"
   },
   "devDependencies": {
