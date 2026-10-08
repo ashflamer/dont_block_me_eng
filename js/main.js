@@ -31,6 +31,11 @@
     show("quiz");
   });
   $("btn-quit").addEventListener("click", function () { show("intro"); });
+  $("btn-retry").addEventListener("click", function () {
+    idx = 0;
+    picks = [];
+    show("intro");
+  });
 
   /* ---------- quiz ---------- */
   function renderQ() {
@@ -93,7 +98,7 @@
     var res = DBM.scoreRun(picks, KEY);
 
     var stamp = $("stamp");
-    stamp.className = "stamp " + (res.blocked ? "block" : "safe");
+    stamp.className = "stamp " + res.stampStyle;
     stamp.textContent = res.stamp;
 
     $("scoreline").innerHTML = "You got <b>" + res.score + "</b> / " + res.total + " right";
@@ -162,7 +167,7 @@
   /* ---------- share ---------- */
   $("btn-share").addEventListener("click", function () {
     var url = DBM.linkFor(window.location.origin + window.location.pathname, KEY);
-    var text = "3 questions about me. Get them wrong and you're blocked. " + url;
+    var text = "10 questions about me. Get them wrong and you're blocked. " + url;
     if (navigator.share) {
       navigator.share({ title: "Don't Block Me", text: text, url: url })["catch"](function () {
         copyOut(text, url);

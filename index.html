@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Don't Block Me — Engineer Edition</title>
-<meta name="description" content="Do you actually know me? Answer 3 questions about my microcontroller, my language and what I'm doing at 2 AM. Get them wrong and you get blocked.">
+<title>Don't Block Me — Engineer Edition &middot; 10 questions</title>
+<meta name="description" content="Do you actually know me? Ten questions: my microcontroller, my language, my editor, my git habits, and what I'm doing at 2 AM. Miss them and you get blocked.">
 <meta property="og:title" content="Don't Block Me — Engineer Edition">
-<meta property="og:description" content="3 questions. Wrong answers get you blocked. Good luck.">
+<meta property="og:description" content="10 questions. Miss them and you get blocked. Good luck.">
 <meta name="theme-color" content="#f7fbff">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%230093ff'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'%3E%21%3C/text%3E%3C/svg%3E">
 <script src="js/quiz.js" defer></script>
@@ -224,27 +224,30 @@
     <div class="logo">!</div>
     <div class="brand">
       <b>Don't Block Me</b>
-      <span>Engineer Edition &middot; 3 questions</span>
+      <span>Engineer Edition &middot; 10 questions</span>
     </div>
   </header>
 
   <!-- ============ INTRO ============ -->
   <section id="s-intro" class="screen on">
     <div class="card">
-      <h1>Think you <span class="hl">know me?</span><br>Prove it.</h1>
-      <p class="lead">Three questions. My microcontroller, my language, and whatever I'm doing at 2 AM. Answer like you actually pay attention &mdash; or find out what being blocked feels like.</p>
+      <h1>Think you <span class="hl">know me?</span><br>Prove it. Ten questions.</h1>
+      <p class="lead">Ten questions. My microcontroller, my language, my editor, my git history, and whatever I'm doing at 2 AM. Answer like you actually pay attention &mdash; or find out what being blocked feels like.</p>
       <div class="chips">
         <span class="chip b">🔌 microcontroller</span>
         <span class="chip y">⌨️ language</span>
         <span class="chip p">🌙 2 AM</span>
+        <span class="chip b">📝 editor</span>
+        <span class="chip y">🐙 git habits</span>
+        <span class="chip p">🔥 soldering</span>
       </div>
     </div>
 
     <div class="card tight">
       <div class="rules">
         <div class="rule"><span class="n">1</span><span>Pick one option per question. No going back &mdash; this is a quiz, not a negotiation.</span></div>
-        <div class="rule"><span class="n">2</span><span>Get <b>3 out of 3</b> and you stay in the friend list.</span></div>
-        <div class="rule"><span class="n">3</span><span>Anything less and you are officially <b style="color:#d9265c">blocked</b>. Screenshot it. Live with it.</span></div>
+        <div class="rule"><span class="n">2</span><span>Get <b>10 out of 10</b> and you stay in the friend list. 9 out of 10 squeaks by.</span></div>
+        <div class="rule"><span class="n">3</span><span>6&ndash;8 lands you on <b style="color:#d9265c">probation</b>. 5 or fewer and you are officially <b style="color:#d9265c">blocked</b>. Screenshot it. Live with it.</span></div>
       </div>
     </div>
 
@@ -256,7 +259,7 @@
   <section id="s-quiz" class="screen">
     <div class="meter" id="meter"></div>
     <div class="qmeta">
-      <span class="count">Question <b id="qnum">1</b> / 3</span>
+      <span class="count">Question <b id="qnum">1</b> / 10</span>
       <span id="qtag">microcontroller</span>
     </div>
     <div class="card">
@@ -270,7 +273,7 @@
   <section id="s-result" class="screen">
     <div class="card">
       <div class="stampwrap"><div class="stamp" id="stamp">BLOCKED</div></div>
-      <p class="scoreline" id="scoreline">You got <b>0</b> / 3 right</p>
+      <p class="scoreline" id="scoreline">You got <b>0</b> / 10 right</p>
       <p class="lead" id="verdict" style="text-align:center;margin-top:8px"></p>
     </div>
 

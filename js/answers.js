@@ -1,7 +1,8 @@
 /* ============================================================
    answers.html — link builder UI.
    Question data + key parsing come from ./quiz.js (window.DBM),
-   the same module index.html and the tests use.
+   the same module index.html and the tests use, so the builder
+   can never drift from the quiz.
    ============================================================ */
 (function () {
   "use strict";
@@ -15,12 +16,21 @@
   function $(id) { return document.getElementById(id); }
   function sel(i) { return $("k" + i); }
 
+  /* Build one dropdown per question straight from the shared question set. */
+  var fields = "";
   QUESTIONS.forEach(function (q, i) {
-    var html = "";
-    q.options.forEach(function (o, j) {
-      html += '<option value="' + j + '">' + LETTERS[j] + " &middot; " + o + "</option>";
-    });
-    sel(i).innerHTML = html;
+    var opts = q.options.map(function (o, j) {
+      return '<option value="' + j + '">' + LETTERS[j] + " &middot; " + o + "</option>";
+    }).join("");
+    fields +=
+      '<div class="field">' +
+      '<label for="k' + i + '"><span class="num">' + (i + 1) + "</span>" + q.text + "</label>" +
+      '<select id="k' + i + '">' + opts + "</select>" +
+      "</div>";
+  });
+  $("fields").innerHTML = fields;
+
+  QUESTIONS.forEach(function (_, i) {
     sel(i).addEventListener("change", update);
   });
 
@@ -32,7 +42,7 @@
 
   $("copy").addEventListener("click", function () {
     var url = currentUrl();
-    var text = "3 questions about me. Get them wrong and you're blocked. " + url;
+    var text = "10 questions about me. Get them wrong and you're blocked. " + url;
     if (navigator.share) {
       navigator.share({ title: "Don't Block Me", text: text, url: url })["catch"](function () {
         copyOut(text, url);
@@ -63,7 +73,8 @@
   }
 
   /* Prefill from an incoming ?key= using the same parser the quiz uses. */
-  var incoming = DBM.keyFromQuery(window.location.search);
-  incoming.forEach(function (v, i) { sel(i).value = String(v); });
+  DBM.keyFromQuery(window.location.search).forEach(function (v, i) {
+    sel(i).value = String(v);
+  });
   update();
 })();

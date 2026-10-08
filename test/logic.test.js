@@ -1,98 +1,172 @@
 /* Pure-logic tests against js/quiz.js — the same module index.html loads. */
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { QUESTIONS, DEFAULT_KEY, parseKey, keyFromQuery, scoreRun, linkFor } = require("../js/quiz.js");
+const Q = require("../js/quiz.js");
+const {
+  QUESTIONS, DEFAULT_KEY, TIERS,
+  parseKey, keyFromQuery, grade, tierFor, scoreRun, linkFor,
+} = Q;
 
-test("question set is exactly the three requested topics", () => {
-  assert.equal(QUESTIONS.length, 3);
-  assert.deepEqual(
-    QUESTIONS.map((q) => q.tag),
-    ["microcontroller", "language", "2 AM"]
-  );
+const N = QUESTIONS.length;
+
+/* ---------- question set ---------- */
+
+test("question set has ten questions, each with four options", () => {
+  assert.equal(N, 10);
+  QUESTIONS.forEach((q, i) => {
+    assert.equal(q.options.length, 4, `question ${i + 1} needs 4 options`);
+    assert.ok(q.tag && q.tag.length > 0, `question ${i + 1} needs a tag`);
+    assert.ok(q.text.endsWith("?"), `question ${i + 1} should read as a question`);
+    assert.equal(new Set(q.options).size, 4, `question ${i + 1} has duplicate options`);
+  });
+  // no tag reused across the set
+  assert.equal(new Set(QUESTIONS.map((q) => q.tag)).size, N);
+});
+
+test("the three originally requested topics are still in there", () => {
   assert.match(QUESTIONS[0].text, /microcontroller/i);
   assert.match(QUESTIONS[1].text, /programming language/i);
   assert.match(QUESTIONS[2].text, /2 AM/);
-  QUESTIONS.forEach((q) => assert.equal(q.options.length, 4, q.tag));
+  assert.deepEqual(QUESTIONS.slice(0, 3).map((q) => q.tag), ["microcontroller", "language", "2 AM"]);
 });
 
-test("default key indexes real options", () => {
-  assert.equal(DEFAULT_KEY.length, QUESTIONS.length);
+test("default key indexes a real option in every question", () => {
+  assert.equal(DEFAULT_KEY.length, N);
   DEFAULT_KEY.forEach((v, i) => {
-    assert.ok(v >= 0 && v < QUESTIONS[i].options.length, `bad default at ${i}`);
+    assert.ok(Number.isInteger(v) && v >= 0 && v < QUESTIONS[i].options.length, `bad default at ${i}`);
   });
   assert.equal(QUESTIONS[0].options[DEFAULT_KEY[0]], "Arduino Uno");
   assert.equal(QUESTIONS[1].options[DEFAULT_KEY[1]], "Python");
+  assert.match(QUESTIONS[2].options[DEFAULT_KEY[2]], /Debugging a bug/);
 });
 
-test("parseKey accepts a well-formed key", () => {
-  assert.deepEqual(parseKey("3,2,1"), [3, 2, 1]);
-  assert.deepEqual(parseKey(" 1 , 0 , 3 "), [1, 0, 3]);
+/* ---------- key parsing ---------- */
+
+test("parseKey accepts a well-formed ten-value key", () => {
+  assert.deepEqual(parseKey("3,2,1,0,3,2,1,0,3,2"), [3, 2, 1, 0, 3, 2, 1, 0, 3, 2]);
+  assert.deepEqual(parseKey(" 1 , 0 , 3 , 2 , 2 , 1 , 2 , 1 , 1 , 0 "), [1, 0, 3, 2, 2, 1, 2, 1, 1, 0]);
+  assert.deepEqual(parseKey(DEFAULT_KEY.join(",")), DEFAULT_KEY);
 });
 
 test("parseKey falls back to the default on garbage", () => {
-  const cases = ["", "   ", undefined, null, "1,2", "1,2,3,4", "a,b,c", "9,0,0", "0,-1,0", "0.5,0,0", "1e2,0,0", "0,0,"];
+  const cases = [
+    "", "   ", undefined, null,
+    "1,2",                       // too few
+    DEFAULT_KEY.concat([0]).join(","), // too many
+    Array(N).fill("a").join(","),      // not numbers
+    "9" + ",0".repeat(N - 1),          // first index out of range
+    "0,-1" + ",0".repeat(N - 2),       // negative
+    "0.5" + ",0".repeat(N - 1),        // decimal must not be truncated to 0
+    "1e2" + ",0".repeat(N - 1),        // exponent form must not parse
+    ",0".repeat(N - 1) + ",",         // empty slot
+    "0x1" + ",0".repeat(N - 1),        // hex must not parse
+  ];
   for (const raw of cases) {
     assert.deepEqual(parseKey(raw), DEFAULT_KEY, `expected default for ${JSON.stringify(raw)}`);
   }
 });
 
-test("keyFromQuery handles ?key=, bare key=, extra params and no key", () => {
-  assert.deepEqual(keyFromQuery("?key=1,2,3"), [1, 2, 3]);
-  assert.deepEqual(keyFromQuery("key=2,1,0"), [2, 1, 0]);
-  assert.deepEqual(keyFromQuery("?utm_source=x&key=3,3,3&v=2"), [3, 3, 3]);
+test("keyFromQuery handles ?key=, bare key=, sibling params and no key", () => {
+  const k = "1,2,3,0,1,2,3,0,1,2";
+  assert.deepEqual(keyFromQuery("?key=" + k), [1, 2, 3, 0, 1, 2, 3, 0, 1, 2]);
+  assert.deepEqual(keyFromQuery("key=" + k), [1, 2, 3, 0, 1, 2, 3, 0, 1, 2]);
+  assert.deepEqual(keyFromQuery("?utm_source=x&key=" + k + "&v=2"), [1, 2, 3, 0, 1, 2, 3, 0, 1, 2]);
+  // the original game's query string must not break anything
   assert.deepEqual(keyFromQuery("?id=YlThkvA&q=m"), DEFAULT_KEY);
   assert.deepEqual(keyFromQuery(""), DEFAULT_KEY);
+  assert.deepEqual(keyFromQuery(null), DEFAULT_KEY);
 });
 
-test("scoreRun: perfect run is not blocked, stamps YOU'RE SAFE", () => {
-  const res = scoreRun([1, 2, 3], [1, 2, 3]);
-  assert.equal(res.score, 3);
+/* ---------- tiers ---------- */
+
+test("tiers are ordered, cover 0..10, and only the top tier is 'safe'", () => {
+  const mins = TIERS.map((t) => t.min);
+  assert.deepEqual([...mins].sort((a, b) => a - b), mins, "TIERS must ascend by min");
+  assert.equal(mins[0], 0, "lowest tier must start at 0");
+  for (let s = 0; s <= N; s++) assert.ok(tierFor(s), "no tier for score " + s);
+  // 9/10 gets the green "YOU'RE SAFE" stamp but scoreRun still flags it blocked
+  assert.deepEqual([6, 7, 8].map(tierFor).map((t) => t.style), ["block", "block", "block"]);
+  assert.equal(tierFor(9).style, "safe");
+  assert.equal(tierFor(N).style, "safe");
+});
+
+test("tier boundaries: 5 blocked / 6 probation / 9 safe / 10 perfect", () => {
+  assert.equal(tierFor(0).name, "BLOCKED");
+  assert.equal(tierFor(5).name, "BLOCKED");
+  assert.equal(tierFor(6).name, "PROBATION");
+  assert.equal(tierFor(8).name, "PROBATION");
+  assert.equal(tierFor(9).name, "YOU'RE SAFE");
+  assert.equal(tierFor(10).name, "YOU'RE SAFE");
+  // the 9 and the 10 must not share a verdict
+  assert.notEqual(tierFor(9).verdict, tierFor(10).verdict);
+});
+
+/* ---------- grading ---------- */
+
+function picksWithScore(want, key) {
+  return key.map((k, i) => (i < want ? k : (k + 1) % 4));
+}
+
+test("scoreRun grades every possible score and only 10/10 is unblocked", () => {
+  const key = DEFAULT_KEY;
+  for (let want = 0; want <= N; want++) {
+    const res = scoreRun(picksWithScore(want, key), key);
+    assert.equal(res.score, want, "score mismatch for " + want);
+    assert.equal(res.total, N);
+    assert.equal(res.blocked, want < N, "blocked flag wrong at " + want);
+    assert.equal(res.tier, tierFor(want).name);
+    assert.equal(res.stamp, tierFor(want).name);
+    assert.equal(res.stampStyle, tierFor(want).style);
+    assert.equal(res.verdict, tierFor(want).verdict);
+    assert.equal(res.rows.length, N);
+    assert.equal(res.rows.filter((r) => r.right).length, want);
+  }
+});
+
+test("scoreRun: perfect run against the default key", () => {
+  const res = scoreRun(DEFAULT_KEY.slice(), DEFAULT_KEY);
+  assert.equal(res.score, 10);
   assert.equal(res.blocked, false);
   assert.equal(res.stamp, "YOU'RE SAFE");
-  assert.deepEqual(res.rows.map((r) => r.right), [true, true, true]);
-  assert.equal(res.rows[0].correct, 1);
+  assert.deepEqual(res.rows.map((r) => r.right), Array(N).fill(true));
+  assert.match(res.verdict, /soldering iron/);
 });
 
-test("scoreRun: one mistake blocks you", () => {
-  const res = scoreRun([1, 2, 0], [1, 2, 3]);
-  assert.equal(res.score, 2);
+test("scoreRun: one mistake still blocks you, but lands in the safe tier copy", () => {
+  const picks = DEFAULT_KEY.slice();
+  picks[4] = (picks[4] + 1) % 4;
+  const res = scoreRun(picks, DEFAULT_KEY);
+  assert.equal(res.score, 9);
   assert.equal(res.blocked, true);
-  assert.equal(res.stamp, "BLOCKED");
-  assert.deepEqual(res.rows.map((r) => r.right), [true, true, false]);
-  assert.match(res.verdict, /Two out of three/);
+  assert.equal(res.tier, "YOU'RE SAFE");
+  assert.deepEqual(res.rows.map((r) => r.right)[4], false);
 });
 
-test("scoreRun: every score maps to its own verdict and all are blocked except 3/3", () => {
-  const key = [0, 1, 2];
-  [0, 1, 2, 3].forEach((want) => {
-    const picks = key.map((k, i) => (i < want ? k : (k + 1) % 4));
-    const res = scoreRun(picks, key);
-    assert.equal(res.score, want);
-    assert.equal(res.total, 3);
-    assert.equal(res.blocked, want < 3);
-    assert.equal(res.verdict, require("../js/quiz.js").VERDICTS[want]);
-  });
-});
-
-test("scoreRun: rows expose the picked and correct option index", () => {
-  const res = scoreRun([0, 3, 1], [2, 3, 1]);
-  assert.deepEqual(res.rows.map((r) => r.picked), [0, 3, 1]);
-  assert.deepEqual(res.rows.map((r) => r.correct), [2, 3, 1]);
-  assert.equal(QUESTIONS[0].options[res.rows[0].picked], "Arduino Uno");
-  assert.equal(QUESTIONS[0].options[res.rows[0].correct], "Raspberry Pi Pico (RP2040)");
+test("grade exposes picked and correct option indexes per question", () => {
+  const key = [3, 2, 1, 0, 3, 2, 1, 0, 3, 2];
+  const picks = [0, 2, 1, 0, 3, 2, 1, 0, 3, 2];
+  const rows = grade(picks, key);
+  assert.deepEqual(rows.map((r) => r.picked), picks);
+  assert.deepEqual(rows.map((r) => r.correct), key);
+  assert.deepEqual(rows.map((r) => r.right), [false, true, true, true, true, true, true, true, true, true]);
+  assert.equal(QUESTIONS[0].options[rows[0].picked], "Arduino Uno");
+  assert.equal(QUESTIONS[0].options[rows[0].correct], "STM32 / AVR bare-metal");
 });
 
 test("scoreRun rejects malformed picks instead of silently scoring", () => {
-  assert.throws(() => scoreRun([0, 1], [0, 1, 0]), /expected 3 picks/);
-  assert.throws(() => scoreRun([0, 1, 9], [0, 1, 0]), /out of range/);
-  assert.throws(() => scoreRun([0, "1", 0], [0, 1, 0]), /out of range/);
+  assert.throws(() => scoreRun(DEFAULT_KEY.slice(0, 9), DEFAULT_KEY), /expected 10 picks/);
+  assert.throws(() => scoreRun(DEFAULT_KEY.concat([0]), DEFAULT_KEY), /expected 10 picks/);
+  assert.throws(() => scoreRun(DEFAULT_KEY.map((v, i) => (i === 3 ? 9 : v)), DEFAULT_KEY), /out of range/);
+  assert.throws(() => scoreRun(DEFAULT_KEY.map((v, i) => (i === 0 ? "1" : v)), DEFAULT_KEY), /out of range/);
+  assert.throws(() => scoreRun(null, DEFAULT_KEY), /expected 10 picks/);
 });
 
-test("linkFor bakes the key into the URL", () => {
-  assert.equal(
-    linkFor("https://example.test/index.html", [1, 2, 3]),
-    "https://example.test/index.html?key=1,2,3"
-  );
-  const round = keyFromQuery("?" + linkFor("", [2, 0, 1]).split("?")[1]);
-  assert.deepEqual(round, [2, 0, 1]);
+/* ---------- links ---------- */
+
+test("linkFor bakes the key in and the URL round-trips back to the same key", () => {
+  const key = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2];
+  const url = linkFor("https://example.test/index.html", key);
+  assert.equal(url, "https://example.test/index.html?key=1,2,3,0,1,2,3,0,1,2");
+  assert.deepEqual(keyFromQuery(url), key);
+  assert.deepEqual(keyFromQuery("?" + url.split("?")[1]), key);
 });

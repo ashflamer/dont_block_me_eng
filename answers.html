@@ -35,7 +35,8 @@
   h1 .hl{background:linear-gradient(transparent 58%, var(--yellow) 58%, var(--yellow) 94%, transparent 94%);padding:0 4px}
   p.lead{margin:0;font-size:15.5px;color:#3d5470;line-height:1.55}
   .field{margin-top:16px}
-  label{display:block;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.7px;color:#6b809b;margin-bottom:7px}
+  label{display:block;font-size:12px;font-weight:900;letter-spacing:.4px;color:#6b809b;margin-bottom:7px;line-height:1.4}
+  label .num{display:inline-block;background:var(--navy);color:#fff;border-radius:7px;padding:1px 7px;margin-right:7px;font-size:11px}
   select{
     width:100%;font-family:inherit;font-size:16px;font-weight:800;color:var(--navy);
     border:3px solid var(--navy);border-radius:16px;padding:13px 14px;background:#fff;
@@ -75,20 +76,8 @@
 
   <div class="card">
     <h1>Pick your <span class="hl">real answers</span></h1>
-    <p class="lead">These get baked into the link as <b>?key=</b>. Send that link out and everyone who opens it is playing against <i>your</i> answers. No server, nothing stored anywhere.</p>
-
-    <div class="field">
-      <label>1 · Which microcontroller do I actually like?</label>
-      <select id="k0"></select>
-    </div>
-    <div class="field">
-      <label>2 · What programming language do I reach for first?</label>
-      <select id="k1"></select>
-    </div>
-    <div class="field">
-      <label>3 · It's 2 AM. What am I doing?</label>
-      <select id="k2"></select>
-    </div>
+    <p class="lead">All ten. These get baked into the link as <b>?key=</b>. Send that link out and everyone who opens it is playing against <i>your</i> answers. No server, nothing stored anywhere.</p>
+    <div id="fields"></div>
   </div>
 
   <div class="card">
@@ -99,8 +88,8 @@
       <button class="btn ghost" id="test">Open quiz</button>
     </div>
     <p class="note" style="margin-top:12px">
-      The <b>?key=</b> values are the option numbers, e.g. <b>?key=0,1,0</b> = A / B / A.
-      Anyone who edits the URL can see the answers &mdash; that's the joke, not a leak.
+      The <b>?key=</b> values are the option numbers, e.g. <b>?key=0,1,0,2,2,1,2,1,1,0</b>.
+      Anyone who edits the URL can read your answers &mdash; that's the joke, not a leak.
     </p>
   </div>
 
@@ -108,7 +97,6 @@
 </div>
 
 <div class="toast" id="toast">Copied!</div>
-
 
 <script src="js/answers.js" defer></script>
 </body>
