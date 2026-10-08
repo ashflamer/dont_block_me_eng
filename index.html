@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Don't Block Me — Engineer Edition</title>
+<meta name="description" content="Do you actually know me? Answer 3 questions about my microcontroller, my language and what I'm doing at 2 AM. Get them wrong and you get blocked.">
+<meta property="og:title" content="Don't Block Me — Engineer Edition">
+<meta property="og:description" content="3 questions. Wrong answers get you blocked. Good luck.">
+<meta name="theme-color" content="#f7fbff">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%230093ff'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'%3E%21%3C/text%3E%3C/svg%3E">
+<script src="js/quiz.js" defer></script>
+<script src="js/main.js" defer></script>
+<style>
+  :root{
+    --ink:#161316;
+    --navy:#16213e;
+    --navy-2:#202a42;
+    --blue:#0093ff;
+    --blue-deep:#015ba3;
+    --pink:#fc5286;
+    --yellow:#ffcd20;
+    --bg:#f7fbff;
+    --card:#fffefd;
+    --shadow:0 6px 0 #d6e6f7, 0 18px 40px -18px rgba(22,33,62,.35);
+    --shadow-soft:0 10px 30px -12px rgba(22,33,62,.25);
+    --font: ui-rounded, "Shantell Sans", "Comic Sans MS", "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:var(--font);
+    color:var(--ink);
+    background:
+      radial-gradient(900px 500px at 8% -10%, #dff1ff 0%, transparent 60%),
+      radial-gradient(700px 480px at 108% 8%, #ffe4ee 0%, transparent 55%),
+      radial-gradient(800px 600px at 50% 120%, #fff3cf 0%, transparent 60%),
+      var(--bg);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+
+  /* ---------- floating doodles ---------- */
+  .doodles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+  .doodle{position:absolute;opacity:.85;animation:float 7s ease-in-out infinite}
+  .doodle:nth-child(2){animation-duration:9s;animation-delay:-2s}
+  .doodle:nth-child(3){animation-duration:11s;animation-delay:-4s}
+  .doodle:nth-child(4){animation-duration:8s;animation-delay:-1s}
+  .doodle:nth-child(5){animation-duration:12s;animation-delay:-6s}
+  .doodle:nth-child(6){animation-duration:10s;animation-delay:-3s}
+  @keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-22px) rotate(9deg)}}
+
+  .wrap{position:relative;z-index:1;max-width:620px;margin:0 auto;padding:28px 18px 72px;min-height:100dvh;display:flex;flex-direction:column}
+
+  header.top{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+  .logo{
+    width:52px;height:52px;border-radius:16px;flex:0 0 auto;
+    background:linear-gradient(160deg,var(--blue),#0072d6);
+    display:grid;place-items:center;color:#fff;font-weight:900;font-size:26px;
+    box-shadow:0 5px 0 #0072d6;
+    transform:rotate(-4deg);
+  }
+  .brand{line-height:1.05}
+  .brand b{display:block;font-size:19px;letter-spacing:.2px}
+  .brand span{font-size:12.5px;color:#5c7290;font-weight:600}
+
+  .screen{display:none;flex-direction:column;gap:18px;animation:pop .45s cubic-bezier(.2,.9,.3,1.4)}
+  .screen.on{display:flex}
+  @keyframes pop{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+
+  .card{
+    background:var(--card);
+    border:3px solid var(--navy);
+    border-radius:28px;
+    padding:26px 22px;
+    box-shadow:var(--shadow);
+  }
+  .card.tight{padding:20px}
+
+  h1{font-size:clamp(28px,7.4vw,42px);line-height:1.06;margin:0 0 10px}
+  h1 .hl{
+    background:linear-gradient(transparent 58%, var(--yellow) 58%, var(--yellow) 94%, transparent 94%);
+    padding:0 4px;
+  }
+  h2{font-size:clamp(21px,5.2vw,28px);margin:0 0 4px;line-height:1.15}
+  p.lead{margin:0;font-size:16px;color:#3d5470;line-height:1.55}
+  .small{font-size:13px;color:#6b809b;line-height:1.5}
+  .kbd{background:#eaf4ff;border:2px solid #cfe6ff;border-radius:8px;padding:1px 6px;font-size:12px;font-weight:700;color:var(--blue-deep)}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .chip{
+    border:2.5px solid var(--navy);border-radius:999px;padding:6px 13px;
+    font-size:13px;font-weight:800;background:#fff;box-shadow:0 3px 0 rgba(22,33,62,.16);
+  }
+  .chip.b{background:#e8f5ff}
+  .chip.p{background:#ffe9f1}
+  .chip.y{background:#fff4cf}
+
+  .rules{display:grid;gap:11px;margin-top:4px}
+  .rule{display:flex;gap:12px;align-items:flex-start;font-size:14.5px;color:#3d5470;line-height:1.45}
+  .rule .n{
+    flex:0 0 auto;width:28px;height:28px;border-radius:10px;background:var(--navy);color:#fff;
+    display:grid;place-items:center;font-weight:900;font-size:14px;transform:rotate(-3deg)
+  }
+
+  .btn{
+    font-family:inherit;font-weight:900;font-size:18px;letter-spacing:.2px;
+    border:3px solid var(--navy);border-radius:18px;padding:15px 22px;cursor:pointer;
+    background:var(--blue);color:#fff;box-shadow:0 6px 0 var(--blue-deep);
+    transition:transform .08s ease, box-shadow .08s ease, filter .15s ease;
+    width:100%;
+  }
+  .btn:hover{filter:brightness(1.06)}
+  .btn:active{transform:translateY(5px);box-shadow:0 1px 0 var(--blue-deep)}
+  .btn.ghost{background:#fff;color:var(--navy);box-shadow:0 6px 0 #d6e6f7;font-size:16px}
+  .btn.pink{background:var(--pink);box-shadow:0 6px 0 #c92f5f}
+  .btn.ghost:active{transform:translateY(5px);box-shadow:0 1px 0 #d6e6f7}
+  .btn.pink:active{transform:translateY(5px);box-shadow:0 1px 0 #c92f5f}
+  .btn.sm{font-size:14px;padding:11px 16px;border-radius:14px}
+  .row{display:flex;gap:10px}
+  .row .btn{flex:1}
+
+  /* ---------- quiz ---------- */
+  .meter{display:flex;gap:7px;margin-bottom:2px}
+  .pip{flex:1;height:10px;border-radius:999px;background:#dce9f7;border:2px solid #c9dcef}
+  .pip.done{background:var(--blue);border-color:var(--blue-deep)}
+  .qmeta{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:800;color:#6b809b;text-transform:uppercase;letter-spacing:.6px}
+  .qmeta .count b{color:var(--navy)}
+
+  .opts{display:grid;gap:12px;margin-top:6px}
+  .opt{
+    display:flex;align-items:center;gap:14px;text-align:left;
+    font-family:inherit;font-size:16.5px;font-weight:800;color:var(--navy);
+    background:#fff;border:3px solid var(--navy);border-radius:18px;padding:14px 16px;cursor:pointer;
+    box-shadow:0 5px 0 #d6e6f7;
+    transition:transform .08s ease, box-shadow .08s ease, background .15s ease;
+  }
+  .opt:hover{background:#f2f9ff}
+  .opt:active{transform:translateY(4px);box-shadow:0 1px 0 #d6e6f7}
+  .opt .letter{
+    flex:0 0 auto;width:32px;height:32px;border-radius:11px;background:#eaf4ff;border:2.5px solid var(--navy);
+    display:grid;place-items:center;font-size:15px;
+  }
+  .opt.sel{background:#dff0ff}
+  .opt.sel .letter{background:var(--blue);color:#fff}
+  .opt.good{background:#e5fbec;border-color:#137e3a}
+  .opt.good .letter{background:#137e3a;color:#fff}
+  .opt.bad{background:#ffe9ee;border-color:#d9265c}
+  .opt.bad .letter{background:#d9265c;color:#fff}
+  .opt:disabled{cursor:default;opacity:.72}
+  .opt.good:disabled,.opt.bad:disabled{opacity:1}
+  .opt .tag{margin-left:auto;font-size:11px;font-weight:900;letter-spacing:.5px;color:#0d6b32}
+  .opt.bad .tag{color:#b0174a}
+
+  /* ---------- result ---------- */
+  .stampwrap{position:relative;display:grid;place-items:center;padding:6px 0 2px}
+  .stamp{
+    font-family:inherit;font-weight:900;font-size:clamp(26px,8vw,40px);letter-spacing:2px;
+    border:6px double currentColor;border-radius:14px;padding:10px 20px;
+    transform:rotate(-8deg);animation:slam .5s cubic-bezier(.2,1.4,.4,1);
+  }
+  .stamp.block{color:#d9265c;background:#fff0f5}
+  .stamp.safe{color:#137e3a;background:#f0fff5}
+  @keyframes slam{0%{transform:rotate(-8deg) scale(3);opacity:0}60%{transform:rotate(-8deg) scale(.9);opacity:1}100%{transform:rotate(-8deg) scale(1)}}
+
+  .scoreline{text-align:center;font-weight:900;font-size:17px;margin-top:2px}
+  .scoreline b{font-size:34px}
+
+  table.compare{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:4px}
+  table.compare th{
+    text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.7px;color:#7d93ae;
+    padding:0 8px 8px;border-bottom:2.5px dashed #d6e6f7;
+  }
+  table.compare td{padding:11px 8px;border-bottom:2px dotted #e3eefb;vertical-align:top;font-weight:700;color:var(--navy)}
+  table.compare tr:last-child td{border-bottom:none}
+  table.compare td.mark{width:26px;font-size:17px;text-align:center}
+  .qtitle{display:block;font-size:11.5px;font-weight:800;color:#8398b3;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+
+  .board{display:grid;gap:8px;margin-top:2px}
+  .brow{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:800;color:var(--navy);
+        background:#fbfdff;border:2.5px solid #e3eefb;border-radius:14px;padding:9px 12px}
+  .brow .sc{margin-left:auto;font-weight:900}
+  .brow .dot{width:10px;height:10px;border-radius:999px;background:#137e3a;flex:0 0 auto}
+  .brow .dot.no{background:#d9265c}
+  .brow.me{background:#eaf4ff;border-color:#bfe2ff}
+
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);
+    background:var(--navy);color:#fff;font-weight:800;font-size:14px;
+    padding:11px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:.25s;z-index:9;
+    box-shadow:var(--shadow-soft);
+  }
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+
+  .confetti{position:fixed;inset:0;pointer-events:none;z-index:8;overflow:hidden}
+  .confetti i{position:absolute;top:-14px;width:9px;height:14px;border-radius:2px;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(108vh) rotate(720deg);opacity:.9}}
+
+  footer.foot{margin-top:auto;padding-top:26px;text-align:center;font-size:12.5px;color:#7d93ae;font-weight:700}
+  footer.foot a{color:var(--blue-deep)}
+
+  @media (max-width:420px){
+    .card{padding:22px 16px;border-radius:24px}
+    .row{flex-direction:column}
+  }
+</style>
+</head>
+<body>
+
+<div class="doodles" aria-hidden="true">
+  <svg class="doodle" style="left:6%;top:12%" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#ffcd20" stroke-width="2" stroke-linecap="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/></svg>
+  <svg class="doodle" style="right:7%;top:20%" width="58" height="58" viewBox="0 0 24 24" fill="none" stroke="#fc5286" stroke-width="2" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M9 7V4M12 7V4M15 7V4M9 20v-3M12 20v-3M15 20v-3M7 9H4M7 12H4M7 15H4M20 9h-3M20 12h-3M20 15h-3"/></svg>
+  <svg class="doodle" style="left:9%;bottom:16%" width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#0093ff" stroke-width="2" stroke-linecap="round"><path d="M4 18c0-5 4-9 9-9 3 0 5 2 5 4s-2 3-3 3-2-.7-2-1.5"/></svg>
+  <svg class="doodle" style="right:9%;bottom:24%" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#16213e" stroke-width="2" stroke-linecap="round"><path d="M21 15a9 9 0 1 1-9-12 7 7 0 0 0 9 12z"/></svg>
+  <svg class="doodle" style="left:44%;top:5%" width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#137e3a" stroke-width="2" stroke-linecap="round"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M14 5l-4 14"/></svg>
+  <svg class="doodle" style="right:20%;bottom:6%" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#f77737" stroke-width="2" stroke-linecap="round"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>
+</div>
+
+<div class="wrap">
+
+  <header class="top">
+    <div class="logo">!</div>
+    <div class="brand">
+      <b>Don't Block Me</b>
+      <span>Engineer Edition &middot; 3 questions</span>
+    </div>
+  </header>
+
+  <!-- ============ INTRO ============ -->
+  <section id="s-intro" class="screen on">
+    <div class="card">
+      <h1>Think you <span class="hl">know me?</span><br>Prove it.</h1>
+      <p class="lead">Three questions. My microcontroller, my language, and whatever I'm doing at 2 AM. Answer like you actually pay attention &mdash; or find out what being blocked feels like.</p>
+      <div class="chips">
+        <span class="chip b">🔌 microcontroller</span>
+        <span class="chip y">⌨️ language</span>
+        <span class="chip p">🌙 2 AM</span>
+      </div>
+    </div>
+
+    <div class="card tight">
+      <div class="rules">
+        <div class="rule"><span class="n">1</span><span>Pick one option per question. No going back &mdash; this is a quiz, not a negotiation.</span></div>
+        <div class="rule"><span class="n">2</span><span>Get <b>3 out of 3</b> and you stay in the friend list.</span></div>
+        <div class="rule"><span class="n">3</span><span>Anything less and you are officially <b style="color:#d9265c">blocked</b>. Screenshot it. Live with it.</span></div>
+      </div>
+    </div>
+
+    <button class="btn" id="btn-start">Start the interrogation →</button>
+    <p class="small" style="text-align:center;margin:0">No signup. No data leaves your device.</p>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section id="s-quiz" class="screen">
+    <div class="meter" id="meter"></div>
+    <div class="qmeta">
+      <span class="count">Question <b id="qnum">1</b> / 3</span>
+      <span id="qtag">microcontroller</span>
+    </div>
+    <div class="card">
+      <h2 id="qtext">…</h2>
+      <div class="opts" id="opts"></div>
+    </div>
+    <button class="btn ghost sm" id="btn-quit">Quit and admit defeat</button>
+  </section>
+
+  <!-- ============ RESULT ============ -->
+  <section id="s-result" class="screen">
+    <div class="card">
+      <div class="stampwrap"><div class="stamp" id="stamp">BLOCKED</div></div>
+      <p class="scoreline" id="scoreline">You got <b>0</b> / 3 right</p>
+      <p class="lead" id="verdict" style="text-align:center;margin-top:8px"></p>
+    </div>
+
+    <div class="card tight">
+      <h2 style="font-size:19px;margin-bottom:10px">The receipts</h2>
+      <table class="compare">
+        <thead><tr><th>Question</th><th>You said</th><th>Truth</th><th></th></tr></thead>
+        <tbody id="compare"></tbody>
+      </table>
+    </div>
+
+    <div class="card tight">
+      <h2 style="font-size:19px;margin-bottom:10px">Hall of shame</h2>
+      <div class="board" id="board"></div>
+      <p class="small" id="boardNote" style="margin-bottom:0;margin-top:10px"></p>
+    </div>
+
+    <div class="row">
+      <button class="btn sm" id="btn-share">Share with a victim</button>
+      <button class="btn ghost sm" id="btn-retry">Try again</button>
+    </div>
+  </section>
+
+  <footer class="foot">
+    Built as a single HTML file &middot; <a href="answers.html">create your own link</a>
+  </footer>
+</div>
+
+<div class="toast" id="toast">Copied!</div>
+<div class="confetti" id="confetti"></div>
+
+</body>
+</html>

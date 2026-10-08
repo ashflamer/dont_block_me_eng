@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Build your link — Don't Block Me (Engineer Edition)</title>
+<meta name="description" content="Pick your real answers and generate a Don't Block Me link with your answer key baked in.">
+<meta name="theme-color" content="#f7fbff">
+<script src="js/quiz.js" defer></script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%230093ff'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'%3E%21%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --ink:#161316; --navy:#16213e; --blue:#0093ff; --blue-deep:#015ba3;
+    --pink:#fc5286; --yellow:#ffcd20; --bg:#f7fbff; --card:#fffefd;
+    --font: ui-rounded, "Shantell Sans", "Comic Sans MS", "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:var(--font);color:var(--ink);min-height:100dvh;
+    background:
+      radial-gradient(900px 500px at 8% -10%, #dff1ff 0%, transparent 60%),
+      radial-gradient(700px 480px at 108% 8%, #ffe4ee 0%, transparent 55%),
+      var(--bg);
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:620px;margin:0 auto;padding:28px 18px 60px;display:flex;flex-direction:column;gap:18px}
+  header.top{display:flex;align-items:center;gap:12px}
+  .logo{width:52px;height:52px;border-radius:16px;background:linear-gradient(160deg,var(--blue),#0072d6);
+        display:grid;place-items:center;color:#fff;font-weight:900;font-size:26px;box-shadow:0 5px 0 #0072d6;transform:rotate(-4deg)}
+  .brand b{display:block;font-size:19px}
+  .brand span{font-size:12.5px;color:#5c7290;font-weight:600}
+  .card{background:var(--card);border:3px solid var(--navy);border-radius:28px;padding:24px 20px;
+        box-shadow:0 6px 0 #d6e6f7, 0 18px 40px -18px rgba(22,33,62,.35)}
+  h1{font-size:clamp(26px,6.6vw,36px);line-height:1.08;margin:0 0 8px}
+  h1 .hl{background:linear-gradient(transparent 58%, var(--yellow) 58%, var(--yellow) 94%, transparent 94%);padding:0 4px}
+  p.lead{margin:0;font-size:15.5px;color:#3d5470;line-height:1.55}
+  .field{margin-top:16px}
+  label{display:block;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.7px;color:#6b809b;margin-bottom:7px}
+  select{
+    width:100%;font-family:inherit;font-size:16px;font-weight:800;color:var(--navy);
+    border:3px solid var(--navy);border-radius:16px;padding:13px 14px;background:#fff;
+    box-shadow:0 4px 0 #d6e6f7;appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2316213e' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 14px center;
+  }
+  .keybox{
+    font-family:ui-monospace, SFMono-Regular, Menlo, monospace;font-size:13px;font-weight:700;
+    background:#0e172d;color:#84e2fa;border-radius:14px;padding:13px 14px;word-break:break-all;
+    border:2px solid #0e172d;line-height:1.5;
+  }
+  .btn{font-family:inherit;font-weight:900;font-size:17px;border:3px solid var(--navy);border-radius:18px;
+       padding:14px 20px;cursor:pointer;background:var(--blue);color:#fff;box-shadow:0 6px 0 var(--blue-deep);
+       transition:transform .08s, box-shadow .08s;width:100%}
+  .btn:active{transform:translateY(5px);box-shadow:0 1px 0 var(--blue-deep)}
+  .btn.ghost{background:#fff;color:var(--navy);box-shadow:0 6px 0 #d6e6f7}
+  .btn.ghost:active{transform:translateY(5px);box-shadow:0 1px 0 #d6e6f7}
+  .row{display:flex;gap:10px}
+  .row .btn{flex:1}
+  .note{font-size:13px;color:#6b809b;line-height:1.5;margin:0}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);background:var(--navy);color:#fff;
+         font-weight:800;font-size:14px;padding:11px 18px;border-radius:999px;opacity:0;pointer-events:none;
+         transition:.25s;z-index:9}
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+  a.back{color:var(--blue-deep);font-weight:800;text-decoration:none;font-size:14px}
+  @media (max-width:420px){.row{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="logo">!</div>
+    <div class="brand"><b>Don't Block Me</b><span>Engineer Edition &middot; link builder</span></div>
+  </header>
+
+  <div class="card">
+    <h1>Pick your <span class="hl">real answers</span></h1>
+    <p class="lead">These get baked into the link as <b>?key=</b>. Send that link out and everyone who opens it is playing against <i>your</i> answers. No server, nothing stored anywhere.</p>
+
+    <div class="field">
+      <label>1 · Which microcontroller do I actually like?</label>
+      <select id="k0"></select>
+    </div>
+    <div class="field">
+      <label>2 · What programming language do I reach for first?</label>
+      <select id="k1"></select>
+    </div>
+    <div class="field">
+      <label>3 · It's 2 AM. What am I doing?</label>
+      <select id="k2"></select>
+    </div>
+  </div>
+
+  <div class="card">
+    <label>Your link</label>
+    <div class="keybox" id="link">—</div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn" id="copy">Copy link</button>
+      <button class="btn ghost" id="test">Open quiz</button>
+    </div>
+    <p class="note" style="margin-top:12px">
+      The <b>?key=</b> values are the option numbers, e.g. <b>?key=0,1,0</b> = A / B / A.
+      Anyone who edits the URL can see the answers &mdash; that's the joke, not a leak.
+    </p>
+  </div>
+
+  <p class="note"><a class="back" href="index.html">← back to the quiz</a></p>
+</div>
+
+<div class="toast" id="toast">Copied!</div>
+
+
+<script src="js/answers.js" defer></script>
+</body>
+</html>
