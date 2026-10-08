@@ -39,6 +39,7 @@ as blocked. That distinction is asserted in `test/logic.test.js`.
 | `js/answers.js` | Link builder UI. Builds its dropdowns from `js/quiz.js`, so it can't drift. |
 | `test/logic.test.js` | 14 logic tests against `js/quiz.js`. |
 | `test/harness.test.js` | 12 jsdom tests that load the real `index.html` and play it with real clicks. |
+| `test/answers-harness.test.js` | 6 jsdom tests for the link builder, incl. extension-less and subdirectory hosting. |
 | `vercel.json` | Static deploy config. |
 
 ## Run it
@@ -66,7 +67,7 @@ non-digit) falls back to the default rather than silently scoring against garbag
 
 ```bash
 npm install     # pulls jsdom, the only devDependency
-npm test        # 26 tests: logic suite + jsdom playthroughs
+npm test        # 32 tests: logic suite + jsdom playthroughs
 ```
 
 The harness plays complete runs at 0/10, 4/10, 7/10, 9/10 and 10/10, checks the stamp,
@@ -81,8 +82,15 @@ Static site — any host works. On Vercel:
 npx vercel --prod        # or: import the repo at vercel.com/new
 ```
 
-No build command, output directory `.` (the root). `vercel.json` adds clean URLs and cache
-headers.
+No build command, output directory `.` (the root).
+
+```bash
+npx vercel --prod --token <your-vercel-token>
+```
+
+`cleanUrls` is deliberately **off**: the link builder resolves `index.html` relative to its
+own URL, and extension-less hosting adds a redirect hop that makes relative asset paths
+fragile. `vercel.json` also sets cache headers for `/js/*`.
 
 ## Notes
 

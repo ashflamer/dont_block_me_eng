@@ -10,8 +10,10 @@
   var DBM = window.DBM;
   var QUESTIONS = DBM.QUESTIONS;
   var LETTERS = ["A", "B", "C", "D"];
-  var base = window.location.origin +
-    window.location.pathname.replace(/answers\.html.*$/, "index.html");
+  /* Resolve the quiz URL from the directory, not from the filename, so this
+     keeps working when the page is served as /answers (cleanUrls), as
+     /answers.html, or out of a subdirectory. */
+  var base = new URL("index.html", window.location.href).href;
 
   function $(id) { return document.getElementById(id); }
   function sel(i) { return $("k" + i); }
